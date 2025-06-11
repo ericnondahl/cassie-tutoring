@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tutoring with Mrs Cassie</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -89,7 +90,7 @@
               student needs and I'll reply within 24 hours with available slots.
             </p>
 
-            <form action="https://tutor-mailer-1041490922145.us-central1.run.app/contact" method="POST">
+            <form id="contactForm" action="https://tutor-mailer-1041490922145.us-central1.run.app/contact" method="POST">
               <div class="mb-4">
                 <label for="email" class="form-label fw-medium">Email</label>
                 <input type="email" name="email" id="email" required
@@ -102,7 +103,8 @@
                   class="form-control form-control-lg" 
                   placeholder="Tell me about your student's needs..."></textarea>
               </div>
-              <button type="submit" class="btn btn-primary btn-lg w-100">
+              <div id="formAlert" class="alert d-none mb-4"></div>
+              <button type="submit" class="btn btn-primary btn-lg w-100" id="submitButton">
                 Send Inquiry
               </button>
             </form>
@@ -113,5 +115,56 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const form = e.target;
+      const submitButton = document.getElementById('submitButton');
+      const alertDiv = document.getElementById('formAlert');
+      
+      // Reset alert
+      alertDiv.className = 'alert d-none mb-4';
+      alertDiv.textContent = '';
+      
+      // Disable submit button and show loading state
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+      
+      try {
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Success
+          alertDiv.className = 'alert alert-success mb-4';
+          alertDiv.textContent = 'Thank you! Your message has been sent. I will get back to you within 24 hours.';
+          form.reset();
+          // Show checkmark and keep disabled
+          submitButton.innerHTML = '<i class="bi bi-check-circle-fill"></i> Message Sent';
+          submitButton.disabled = true;
+          submitButton.classList.add('btn-success');
+          submitButton.classList.remove('btn-primary');
+        } else {
+          // Error
+          alertDiv.className = 'alert alert-danger mb-4';
+          alertDiv.textContent = data.error || 'Something went wrong. Please try again.';
+        }
+      } catch (error) {
+        // Network error
+        alertDiv.className = 'alert alert-danger mb-4';
+        alertDiv.textContent = 'Network error. Please check your connection and try again.';
+      } finally {
+        // Re-enable submit button
+        submitButton.disabled = false;
+        submitButton.textContent = 'Send Inquiry';
+      }
+    });
+  </script>
 </body>
 </html>
